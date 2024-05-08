@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -46,7 +47,23 @@ func main() {
 }
 
 func Register(writer http.ResponseWriter, request *http.Request) {
-	username := "ga"
+	requestUrl := request.URL
+	params, err := url.ParseQuery(requestUrl.RawQuery)
+	if err != nil {
+		fmt.Printf("Error parsing URL parameters: %s\n", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Printf("{\"error\": \"%s\"}", err)
+		return
+	}
+
+	usernameArr, ok := params["username"]
+	if !ok {
+		fmt.Printf("Error parsing URL parameters: %s\n", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Printf("{\"error\": \"%s\"}", err)
+		return
+	}
+	username := usernameArr[0]
 
 	uid := cuid2.Generate()
 
