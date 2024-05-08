@@ -1,0 +1,8 @@
+services:
+  web:
+    container_name: rimajon2-be
+    restart: on-failure
+    build: .
+    ports:
+      - "9126:8080"
+
