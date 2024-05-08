@@ -1,18 +1,30 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/nrednav/cuid2"
 	"github.com/rs/cors"
 )
+
+type PersonInfo struct {
+	UserId   string
+	Username string
+}
+
+var users map[string]string
 
 func main() {
 	fmt.Println("hello SEKAI!!")
 	router := mux.NewRouter().PathPrefix("/api").Subrouter()
+
+	// initialize the global users map
+	users = make(map[string]string)
 
 	router.HandleFunc("/register", Register)
 
@@ -33,13 +45,31 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
-type PersonInfo struct {
-	useruuid int
-	username string
-}
-
 func Register(writer http.ResponseWriter, request *http.Request) {
+	username := "ga"
+
+	uid := cuid2.Generate()
+
+	// Store in the users map
+	users[uid] = username
+
+	// The result json
+	result := PersonInfo{
+		UserId:   uid,
+		Username: username,
+	}
+
 	writer.Header().Set("Content-Type", "application/json")
+
+	jsonData, err := json.Marshal(result)
+	if err != nil {
+		fmt.Printf("Error in JSON marshal: %s\n", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		fmt.Printf("{\"error\": \"%s\"}", err)
+		return
+	}
+
 	writer.WriteHeader(http.StatusOK)
-	fmt.Fprintf(writer, "{\"yes\":\"and\"}")
+
+	fmt.Fprintf(writer, "%s", jsonData)
 }
