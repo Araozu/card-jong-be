@@ -52,15 +52,15 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		fmt.Printf("Error parsing URL parameters: %s\n", err)
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("{\"error\": \"%s\"}", err)
+		fmt.Fprintf(writer, "{\"error\": \"%s\"}", err)
 		return
 	}
 
 	usernameArr, ok := params["username"]
 	if !ok {
-		fmt.Printf("Error parsing URL parameters: %s\n", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("{\"error\": \"%s\"}", err)
+		fmt.Println("username GET param not found")
+		writer.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(writer, "{\"error\": \"username not found\"}")
 		return
 	}
 	username := usernameArr[0]
@@ -82,11 +82,15 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		fmt.Printf("Error in JSON marshal: %s\n", err)
 		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("{\"error\": \"%s\"}", err)
+		fmt.Fprintf(writer, "{\"error\": \"%s\"}", err)
 		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
 
 	fmt.Fprintf(writer, "%s", jsonData)
+}
+
+func ValidateId(writer http.ResponseWriter, request *http.Request) {
+
 }
