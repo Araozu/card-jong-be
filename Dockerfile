@@ -11,5 +11,4 @@ RUN go build
 EXPOSE 8080:8080
 
 # Copy the backend binary
-COPY ./card-jong-be .
 CMD ["card-jong-be"]
