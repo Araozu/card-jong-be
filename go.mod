@@ -1,4 +1,4 @@
-module git.araozu.dev/card-jong-be
+module card-jong-be
 
 go 1.22.2
 

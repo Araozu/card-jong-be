@@ -1,13 +1,13 @@
 package main
 
 import (
+	"card-jong-be/controller"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/nrednav/cuid2"
@@ -30,6 +30,7 @@ func main() {
 
 	router.HandleFunc("/register", Register)
 	router.HandleFunc("/validate", ValidateId)
+	router.HandleFunc("/lobby/new", controller.CreateLobby).Methods("POST")
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -94,22 +95,9 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 }
 
 func ValidateId(writer http.ResponseWriter, request *http.Request) {
-	// (try to) get the Bearer token
-	reqToken := request.Header.Get("Authorization")
-	if !strings.HasPrefix(reqToken, "Bearer ") {
-		// return 401
+	if controller.AuthHeaderIsValid(&users, request.Header.Get("Authorization")) {
+		writer.WriteHeader(http.StatusOK)
+	} else {
 		writer.WriteHeader(http.StatusUnauthorized)
 	}
-
-	bearerToken := reqToken[7:]
-
-	// Check that the token is in the global map
-	_, ok := users[bearerToken]
-	if !ok {
-		// Return 401
-		writer.WriteHeader(http.StatusUnauthorized)
-	}
-
-	// Return Ok
-	writer.WriteHeader(http.StatusOK)
 }
