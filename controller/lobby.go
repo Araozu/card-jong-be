@@ -24,6 +24,12 @@ var lobbies = make(map[string]Lobby)
 func CreateLobby(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json")
 
+	authOk := AuthHeaderIsValid(request.Header.Get("Authorization"))
+	if !authOk {
+		writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	lobbyId := cuid2.Generate()
 
 	result := LobbyResult{LobbyId: lobbyId}

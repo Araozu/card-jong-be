@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/nrednav/cuid2"
 	"github.com/rs/cors"
 )
 
@@ -19,17 +18,12 @@ type PersonInfo struct {
 	Username string
 }
 
-var users map[string]string
-
 func main() {
 	fmt.Println("hello SEKAI!!")
 	router := mux.NewRouter().PathPrefix("/api").Subrouter()
 
-	// initialize the global users map
-	users = make(map[string]string)
-
 	router.HandleFunc("/register", Register)
-	router.HandleFunc("/validate", ValidateId)
+	router.HandleFunc("/validate", controller.ValidateId)
 	router.HandleFunc("/lobby/new", controller.CreateLobby).Methods("POST")
 
 	port, ok := os.LookupEnv("PORT")
@@ -53,29 +47,20 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 	requestUrl := request.URL
 	params, err := url.ParseQuery(requestUrl.RawQuery)
 	if err != nil {
-		fmt.Printf("Error parsing URL parameters: %s\n", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "{\"error\": \"%s\"}", err)
+		controller.WriteError(err, "Error parsing URL parameters", &writer)
 		return
 	}
 
 	usernameArr, ok := params["username"]
 	if !ok {
-		fmt.Println("username GET param not found")
-		writer.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(writer, "{\"error\": \"username not found\"}")
+		controller.WriteError(err, "username not found", &writer)
 		return
 	}
 	username := usernameArr[0]
 
-	uid := cuid2.Generate()
-
-	// Store in the users map
-	users[uid] = username
-
 	// The result json
 	result := PersonInfo{
-		UserId:   uid,
+		UserId:   controller.Register(username),
 		Username: username,
 	}
 
@@ -83,21 +68,11 @@ func Register(writer http.ResponseWriter, request *http.Request) {
 
 	jsonData, err := json.Marshal(result)
 	if err != nil {
-		fmt.Printf("Error in JSON marshal: %s\n", err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(writer, "{\"error\": \"%s\"}", err)
+		controller.WriteError(err, "Error serializing JSON", &writer)
 		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
 
 	fmt.Fprintf(writer, "%s", jsonData)
-}
-
-func ValidateId(writer http.ResponseWriter, request *http.Request) {
-	if controller.AuthHeaderIsValid(&users, request.Header.Get("Authorization")) {
-		writer.WriteHeader(http.StatusOK)
-	} else {
-		writer.WriteHeader(http.StatusUnauthorized)
-	}
 }

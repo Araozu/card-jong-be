@@ -1,10 +1,19 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
 	"strings"
 )
 
-func AuthHeaderIsValid(users *map[string]string, authHeader string) bool {
+func WriteError(err error, message string, writer *http.ResponseWriter) {
+	fmt.Printf("Error: %s\n", err)
+	(*writer).WriteHeader(http.StatusInternalServerError)
+	fmt.Fprintf(*writer, "{\"error\": \"%s\"}", message)
+	return
+}
+
+func AuthHeaderIsValid(authHeader string) bool {
 	// (try to) get the Bearer token
 	reqToken := authHeader
 	if !strings.HasPrefix(reqToken, "Bearer ") {
@@ -14,7 +23,7 @@ func AuthHeaderIsValid(users *map[string]string, authHeader string) bool {
 	bearerToken := reqToken[7:]
 
 	// Check that the token is in the global map
-	_, ok := (*users)[bearerToken]
+	_, ok := (Users)[bearerToken]
 
 	return ok
 }
