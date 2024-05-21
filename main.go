@@ -20,11 +20,17 @@ type PersonInfo struct {
 
 func main() {
 	fmt.Println("hello SEKAI!!")
-	router := mux.NewRouter().PathPrefix("/api").Subrouter()
+	mainRouter := mux.NewRouter()
+	httpRouter := mainRouter.PathPrefix("/api").Subrouter()
+	wsRouter := mainRouter.PathPrefix("/ws").Subrouter()
 
-	router.HandleFunc("/register", Register)
-	router.HandleFunc("/validate", controller.ValidateId)
-	router.HandleFunc("/lobby/new", controller.CreateLobby).Methods("POST")
+	// HTTP routes
+	httpRouter.HandleFunc("/register", Register)
+	httpRouter.HandleFunc("/validate", controller.ValidateId)
+	httpRouter.HandleFunc("/lobby/new", controller.CreateLobby).Methods("POST")
+
+	// WS routes
+	wsRouter.HandleFunc("/lobby/connect", controller.LobbyWsConnect)
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -38,7 +44,7 @@ func main() {
 		AllowCredentials: true,
 	})
 
-	handler := cors.Handler(router)
+	handler := cors.Handler(mainRouter)
 
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
