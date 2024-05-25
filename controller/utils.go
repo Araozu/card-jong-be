@@ -10,7 +10,6 @@ func WriteError(err error, message string, writer *http.ResponseWriter) {
 	fmt.Printf("Error: %s\n", err)
 	(*writer).WriteHeader(http.StatusInternalServerError)
 	fmt.Fprintf(*writer, "{\"error\": \"%s\"}", message)
-	return
 }
 
 func AuthHeaderIsValid(authHeader string) bool {
@@ -23,7 +22,7 @@ func AuthHeaderIsValid(authHeader string) bool {
 	bearerToken := reqToken[7:]
 
 	// Check that the token is in the global map
-	_, ok := (Users)[bearerToken]
+	_, ok := Users[bearerToken]
 
 	return ok
 }
